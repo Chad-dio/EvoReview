@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -12,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
+import java.util.concurrent.Executor;
+import java.util.concurrent.RejectedExecutionException;
 
 @RestController
 public class GitHubWebhookController {
@@ -22,17 +25,20 @@ public class GitHubWebhookController {
     private final GitHubWebhookVerifier verifier;
     private final PullRequestEventService pullRequestEventService;
     private final ObjectMapper objectMapper;
+    private final Executor gitHubEventExecutor;
 
     public GitHubWebhookController(
             GitHubProperties properties,
             GitHubWebhookVerifier verifier,
             PullRequestEventService pullRequestEventService,
-            ObjectMapper objectMapper
+            ObjectMapper objectMapper,
+            @Qualifier("gitHubEventExecutor") Executor gitHubEventExecutor
     ) {
         this.properties = properties;
         this.verifier = verifier;
         this.pullRequestEventService = pullRequestEventService;
         this.objectMapper = objectMapper;
+        this.gitHubEventExecutor = gitHubEventExecutor;
     }
 
     @PostMapping(path = "/api/github/webhook", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -53,19 +59,33 @@ public class GitHubWebhookController {
         String eventName = event == null ? "" : event;
         log.info("Accepted GitHub webhook event={} delivery={}", eventName, delivery);
 
+        if ("ping".equals(eventName)) {
+            return ResponseEntity.ok(Map.of("status", "ok", "event", "ping"));
+        }
+        if ("pull_request".equals(eventName)) {
+            JsonNode body;
+            try {
+                body = objectMapper.readTree(payload);
+            } catch (Exception ex) {
+                log.warn("Rejected GitHub webhook delivery {} with malformed JSON", delivery);
+                return ResponseEntity.badRequest().body(Map.of("status", "invalid payload"));
+            }
+            try {
+                gitHubEventExecutor.execute(() -> handlePullRequest(body, delivery));
+            } catch (RejectedExecutionException ex) {
+                log.error("GitHub event queue is full, rejecting delivery {}", delivery);
+                return ResponseEntity.status(503).body(Map.of("status", "event queue is full"));
+            }
+            return ResponseEntity.accepted().body(Map.of("status", "accepted", "event", "pull_request"));
+        }
+        return ResponseEntity.ok(Map.of("status", "ignored", "event", eventName));
+    }
+
+    private void handlePullRequest(JsonNode payload, String delivery) {
         try {
-            if ("ping".equals(eventName)) {
-                return ResponseEntity.ok(Map.of("status", "ok", "event", "ping"));
-            }
-            if ("pull_request".equals(eventName)) {
-                JsonNode body = objectMapper.readTree(payload);
-                pullRequestEventService.handle(body);
-                return ResponseEntity.ok(Map.of("status", "ok", "event", "pull_request"));
-            }
-            return ResponseEntity.ok(Map.of("status", "ignored", "event", eventName));
+            pullRequestEventService.handle(payload);
         } catch (Exception ex) {
             log.error("Failed to handle GitHub webhook delivery {}", delivery, ex);
-            return ResponseEntity.status(500).body(Map.of("status", "handler failed"));
         }
     }
 }

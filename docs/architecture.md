@@ -58,9 +58,15 @@ GitHub App
 smee.io  (local)  or  https://YOUR_DOMAIN  (later)
     ↓
 POST /api/github/webhook
-    ↓
+    ↓  verify signature, ack fast (202 Accepted)
+    ↓  process asynchronously on the github-event executor
 Changed files + placeholder PR comment
 ```
+
+GitHub expects a response within 10 seconds. The controller therefore only verifies the
+signature and parses the payload, then dispatches the event to a background thread pool
+(`gitHubEventExecutor`) and returns `202 Accepted`. Handler failures are logged but not
+retried; once a review is worth keeping, Phase 4+ persistence can add retry on top.
 
 See [github-app.md](github-app.md).
 

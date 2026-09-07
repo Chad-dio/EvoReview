@@ -79,6 +79,10 @@ GET http://localhost:8080/api/stack
 
 Open or update a PR in a repository where the App is installed.
 
-GitHub → App → Advanced → Recent Deliveries should show `ping` and `pull_request` as 200.
+GitHub → App → Advanced → Recent Deliveries should show `ping` as 200 and `pull_request` as 202.
+
+`pull_request` events are acknowledged immediately (202 Accepted) and processed on a
+background thread pool, so slow handlers cannot hit GitHub's 10 second timeout. A failed
+handler is logged by Backend but not redelivered by GitHub.
 
 The PR should get a placeholder comment listing changed files.
