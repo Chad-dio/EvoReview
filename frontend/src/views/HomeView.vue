@@ -6,6 +6,9 @@
     <ul class="status-list">
       <li>Backend: {{ backendStatus }}</li>
       <li>LLM Service: {{ llmStatus }}</li>
+      <li>GitHub App: {{ githubStatus }}</li>
+      <li>GitHub Client ID: {{ githubClientStatus }}</li>
+      <li v-if="githubWebhookUrl">Webhook: {{ githubWebhookUrl }}</li>
     </ul>
   </main>
 </template>
@@ -15,6 +18,9 @@ import { onMounted, ref } from 'vue'
 
 const backendStatus = ref('checking')
 const llmStatus = ref('checking')
+const githubStatus = ref('checking')
+const githubClientStatus = ref('checking')
+const githubWebhookUrl = ref('')
 
 onMounted(async () => {
   try {
@@ -22,17 +28,27 @@ onMounted(async () => {
     if (!response.ok) {
       backendStatus.value = 'DOWN'
       llmStatus.value = 'UNKNOWN'
+      githubStatus.value = 'UNKNOWN'
+      githubClientStatus.value = 'UNKNOWN'
+      githubWebhookUrl.value = ''
       return
     }
     const data = await response.json() as {
       backend?: { status?: string }
       llmService?: { status?: string }
+      github?: { configured?: boolean; clientIdConfigured?: boolean; webhookUrl?: string }
     }
     backendStatus.value = data.backend?.status ?? 'DOWN'
     llmStatus.value = data.llmService?.status ?? 'DOWN'
+    githubStatus.value = data.github?.configured ? 'configured' : 'not configured'
+    githubClientStatus.value = data.github?.clientIdConfigured ? 'configured' : 'missing'
+    githubWebhookUrl.value = data.github?.webhookUrl ?? ''
   } catch {
     backendStatus.value = 'DOWN'
     llmStatus.value = 'UNKNOWN'
+    githubStatus.value = 'UNKNOWN'
+    githubClientStatus.value = 'UNKNOWN'
+    githubWebhookUrl.value = ''
   }
 })
 </script>

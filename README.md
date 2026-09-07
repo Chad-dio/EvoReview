@@ -12,14 +12,14 @@ This repository is a monorepo. Java Backend is the main business system. Python 
 
 ## 2. Current Stage
 
-**Phase 0 - Project Initialization**
+**Phase 1 - Git Integration**
 
-The project skeleton is in place. There is no Git review, webhook, LLM call, rule engine, or evolution feature yet.
+The skeleton can receive a GitHub pull request, list changed files, and post a placeholder comment. There is still no LLM review, rule engine, or evolution.
 
 Current capability:
 
-- Frontend displays a landing page and shows Backend / LLM status through Backend.
-- Backend provides `GET /api/health` and `GET /api/stack`.
+- Frontend displays a landing page and shows Backend / LLM / GitHub App status.
+- Backend provides `GET /api/health`, `GET /api/stack`, and `POST /api/github/webhook`.
 - LLM Service provides `GET /health`.
 
 ## 3. Architecture
@@ -88,10 +88,11 @@ Currently used:
 - Python
 - FastAPI
 - Git
+- GitHub App (webhook)
 
 ### Possible Future Components
 
-Not introduced in Phase 0:
+Not introduced yet:
 
 - PostgreSQL / MySQL
 - Redis
@@ -102,7 +103,7 @@ Not introduced in Phase 0:
 
 ## 6. Local Development
 
-See [docs/development.md](docs/development.md) for details.
+See [docs/development.md](docs/development.md) and [docs/github-app.md](docs/github-app.md) for details.
 
 Frontend:
 
@@ -150,4 +151,4 @@ Default ports:
 
 See [docs/roadmap.md](docs/roadmap.md).
 
-The next planned stage is Phase 1 - Git Integration.
+The next planned stage is Phase 2 - Context Builder.

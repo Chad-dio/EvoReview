@@ -40,7 +40,11 @@ cd backend
 
 Health check: `http://localhost:8080/api/health`
 
-Stack check (Backend + LLM): `http://localhost:8080/api/stack`
+Stack check (Backend + LLM + GitHub config): `http://localhost:8080/api/stack`
+
+GitHub webhook (local via smee): `POST http://localhost:8080/api/github/webhook`
+
+Setup: [github-app.md](github-app.md)
 
 ## LLM Service
 

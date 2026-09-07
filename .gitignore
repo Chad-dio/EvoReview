@@ -15,6 +15,8 @@ logs/
 .env
 .env.*
 !.env.example
+.local/
+*.pem
 
 # Frontend
 node_modules/

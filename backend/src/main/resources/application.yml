@@ -1,6 +1,8 @@
 spring:
   application:
     name: evoreview-backend
+  config:
+    import: optional:file:.local/application-local.yml
 
 server:
   port: 8080
@@ -8,3 +10,9 @@ server:
 evoreview:
   llm-service:
     base-url: ${EVOREVIEW_LLM_BASE_URL:http://localhost:8000}
+  github:
+    app-id: ${GITHUB_APP_ID:}
+    client-id: ${GITHUB_APP_CLIENT_ID:}
+    webhook-secret: ${GITHUB_WEBHOOK_SECRET:}
+    private-key-path: ${GITHUB_APP_PRIVATE_KEY_PATH:.local/github-app.pem}
+    public-base-url: ${GITHUB_PUBLIC_BASE_URL:}

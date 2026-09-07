@@ -1,5 +1,6 @@
 package com.evoreview.health;
 
+import com.evoreview.github.GitHubProperties;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -10,9 +11,11 @@ import java.util.Map;
 public class StackController {
 
     private final LlmHealthClient llmHealthClient;
+    private final GitHubProperties gitHubProperties;
 
-    public StackController(LlmHealthClient llmHealthClient) {
+    public StackController(LlmHealthClient llmHealthClient, GitHubProperties gitHubProperties) {
         this.llmHealthClient = llmHealthClient;
+        this.gitHubProperties = gitHubProperties;
     }
 
     @GetMapping("/api/stack")
@@ -23,6 +26,11 @@ public class StackController {
                 "status", "UP"
         ));
         body.put("llmService", llmHealthClient.health());
+        Map<String, Object> github = new LinkedHashMap<>();
+        github.put("configured", gitHubProperties.isConfigured());
+        github.put("clientIdConfigured", !gitHubProperties.getClientId().isBlank());
+        github.put("webhookUrl", gitHubProperties.webhookUrl());
+        body.put("github", github);
         return body;
     }
 }

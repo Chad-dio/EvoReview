@@ -1,0 +1,11 @@
+# GitHub App local configuration
+# Copy this file to backend/.local/application-local.yml
+# Never commit the copied file or the .pem private key.
+
+evoreview:
+  github:
+    app-id: "YOUR_GITHUB_APP_ID"
+    client-id: "YOUR_GITHUB_APP_CLIENT_ID"
+    public-base-url: "https://YOUR_PUBLIC_HOST"
+    webhook-secret: "YOUR_WEBHOOK_SECRET"
+    private-key-path: ".local/github-app.pem"

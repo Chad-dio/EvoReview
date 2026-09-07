@@ -1,6 +1,6 @@
 # Architecture
 
-Current Stage: **Project Skeleton Initialization**
+Current Stage: **Phase 1 Git Integration**
 
 ## Future Flow
 
@@ -30,7 +30,7 @@ Java is the controller. Python is not the system of record.
 
 ## Current Runtime
 
-Phase 0 is a **monorepo**. Locally it already runs as three processes:
+Phase 0 is a **monorepo**. Locally it runs as three processes:
 
 ```text
 Browser
@@ -45,10 +45,24 @@ Python LLM Service :8000
 | Service | Stack | Port | Endpoint |
 | --- | --- | --- | --- |
 | Frontend | Vue 3 + Vite | 5173 | landing page, reads `/api/stack` |
-| Backend | Spring Boot 3 | 8080 | `GET /api/health`, `GET /api/stack` |
+| Backend | Spring Boot 3 | 8080 | `GET /api/health`, `GET /api/stack`, `POST /api/github/webhook` |
 | LLM Service | FastAPI | 8000 | `GET /health` |
 
-`GET /api/stack` is a smoke check: Backend reports itself UP and probes LLM `/health`.
+`GET /api/stack` is a smoke check: Backend reports itself UP, probes LLM `/health`, and reports whether the GitHub App credentials are present.
+
+GitHub webhooks:
+
+```text
+GitHub App
+    ↓
+smee.io  (local)  or  https://YOUR_DOMAIN  (later)
+    ↓
+POST /api/github/webhook
+    ↓
+Changed files + placeholder PR comment
+```
+
+See [github-app.md](github-app.md).
 
 No database, message queue, Docker image, or real LLM provider is wired yet.
 

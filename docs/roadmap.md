@@ -11,12 +11,12 @@
 
 ## Phase 1：Git Integration
 
-- [ ] GitHub App
-- [ ] Webhook
-- [ ] Pull Request Event
-- [ ] Changed Files
-- [ ] Git Diff
-- [ ] Review Comment
+- [x] GitHub App
+- [x] Webhook
+- [x] Pull Request Event
+- [x] Changed Files
+- [x] Git Diff
+- [x] Review Comment
 
 ## Phase 2：Context Builder
 

@@ -23,22 +23,28 @@ Future system of record and workflow controller:
 
 ## Current Status
 
-Health API plus a stack probe to the LLM service.
+Health API, stack probe, and GitHub webhook.
 
 ```http
 GET /api/health
 GET /api/stack
+POST /api/github/webhook
 ```
 
-`/api/health` reports this process only. `/api/stack` also calls `GET {llm-service}/health`.
+`/api/health` reports this process only. `/api/stack` also calls LLM `/health` and reports whether GitHub App credentials are present.
 
-No database, security, or Git integration.
+`/api/github/webhook` verifies the GitHub signature, reads pull request events, loads changed files, and posts a placeholder comment.
+
+See [../docs/github-app.md](../docs/github-app.md).
+
+No database. No LLM review yet.
 
 ## Tech Stack
 
 - Java 17+
 - Spring Boot 3
 - Spring Web
+- GitHub API (App JWT + installation token)
 - Maven Wrapper
 
 ## Start
@@ -63,4 +69,4 @@ Requires JDK 17 or newer. Spring Boot 3 cannot compile or run on JDK 8.
 
 ## Next
 
-GitHub Integration.
+Context Builder, after webhook + diff + placeholder comment work on a real PR.
