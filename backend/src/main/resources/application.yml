@@ -1,0 +1,10 @@
+spring:
+  application:
+    name: evoreview-backend
+
+server:
+  port: 8080
+
+evoreview:
+  llm-service:
+    base-url: ${EVOREVIEW_LLM_BASE_URL:http://localhost:8000}
