@@ -69,7 +69,13 @@ public class GitHubAppClient {
         log.info("Posted placeholder review comment on {}/{}#{}", owner, repo, pullNumber);
     }
 
-    private GitHub loginAsInstallation(long installationId) throws IOException {
+    public GitHub loginAsInstallation(long installationId) throws IOException {
+        return new GitHubBuilder()
+                .withAppInstallationToken(createInstallationToken(installationId))
+                .build();
+    }
+
+    public String createInstallationToken(long installationId) throws IOException {
         Path privateKey = properties.resolvedPrivateKeyPath();
         try {
             String pem = GitHubPrivateKeyPem.toPkcs8Pem(Files.readString(privateKey));
@@ -78,9 +84,7 @@ public class GitHubAppClient {
                     .build();
             GHAppInstallation installation = appGitHub.getApp().getInstallationById(installationId);
             GHAppInstallationToken token = installation.createToken().create();
-            return new GitHubBuilder()
-                    .withAppInstallationToken(token.getToken())
-                    .build();
+            return token.getToken();
         } catch (GeneralSecurityException | IllegalArgumentException ex) {
             throw new IOException("Unable to load GitHub App private key", ex);
         }

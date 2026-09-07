@@ -16,3 +16,31 @@ evoreview:
     webhook-secret: ${GITHUB_WEBHOOK_SECRET:}
     private-key-path: ${GITHUB_APP_PRIVATE_KEY_PATH:.local/github-app.pem}
     public-base-url: ${GITHUB_PUBLIC_BASE_URL:}
+    api-base-url: ${GITHUB_API_BASE_URL:https://api.github.com}
+  context:
+    model-input-budget: ${EVOREVIEW_CONTEXT_MODEL_INPUT_BUDGET:12000}
+    prompt-overhead: ${EVOREVIEW_CONTEXT_PROMPT_OVERHEAD:2000}
+    safety-margin: ${EVOREVIEW_CONTEXT_SAFETY_MARGIN:1000}
+    max-related-files-per-slice: ${EVOREVIEW_CONTEXT_MAX_RELATED_FILES_PER_SLICE:30}
+    max-file-kb: ${EVOREVIEW_CONTEXT_MAX_FILE_KB:256}
+    max-snapshot-mb: ${EVOREVIEW_CONTEXT_MAX_SNAPSHOT_MB:50}
+    store-dir: ${EVOREVIEW_CONTEXT_STORE_DIR:.local/contexts}
+    snapshot-cache-dir: ${EVOREVIEW_CONTEXT_SNAPSHOT_CACHE_DIR:.local/snapshots}
+    policy: ${EVOREVIEW_CONTEXT_POLICY:heuristic-v1}
+    token-estimator: ${EVOREVIEW_CONTEXT_TOKEN_ESTIMATOR:chars-div-4-v1}
+    recall:
+      symbol-graph: true
+      conventions: true
+      bm25: false
+      co-change: false
+    co-change:
+      min-history-commits: 200
+      refresh-interval-days: 7
+    sensitive-patterns:
+      - ".env*"
+      - "*.pem"
+      - "*.key"
+      - "*.p12"
+      - "*.jks"
+      - "credentials*"
+      - "secrets*"

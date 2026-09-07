@@ -15,6 +15,7 @@ public class GitHubProperties {
     private String webhookSecret = "";
     private String privateKeyPath = ".local/github-app.pem";
     private String publicBaseUrl = "";
+    private String apiBaseUrl = "https://api.github.com";
 
     public String getAppId() {
         return appId;
@@ -54,6 +55,16 @@ public class GitHubProperties {
 
     public void setPublicBaseUrl(String publicBaseUrl) {
         this.publicBaseUrl = publicBaseUrl == null ? "" : trimTrailingSlash(publicBaseUrl);
+    }
+
+    public String getApiBaseUrl() {
+        return apiBaseUrl;
+    }
+
+    public void setApiBaseUrl(String apiBaseUrl) {
+        this.apiBaseUrl = apiBaseUrl == null || apiBaseUrl.isBlank()
+                ? "https://api.github.com"
+                : trimTrailingSlash(apiBaseUrl);
     }
 
     public String webhookUrl() {
