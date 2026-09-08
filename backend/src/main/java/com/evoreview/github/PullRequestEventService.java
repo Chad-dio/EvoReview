@@ -2,6 +2,8 @@ package com.evoreview.github;
 
 import com.evoreview.context.ContextBuilder;
 import com.evoreview.context.model.ContextBuildResult;
+import com.evoreview.review.ReviewEngine;
+import com.evoreview.review.ReviewResult;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,15 +21,21 @@ public class PullRequestEventService {
     private final GitHubAppClient gitHubAppClient;
     private final ContextBuilder contextBuilder;
     private final ReviewPlanCommentRenderer commentRenderer;
+    private final ReviewEngine reviewEngine;
+    private final FindingPublisher findingPublisher;
 
     public PullRequestEventService(
             GitHubAppClient gitHubAppClient,
             ContextBuilder contextBuilder,
-            ReviewPlanCommentRenderer commentRenderer
+            ReviewPlanCommentRenderer commentRenderer,
+            ReviewEngine reviewEngine,
+            FindingPublisher findingPublisher
     ) {
         this.gitHubAppClient = gitHubAppClient;
         this.contextBuilder = contextBuilder;
         this.commentRenderer = commentRenderer;
+        this.reviewEngine = reviewEngine;
+        this.findingPublisher = findingPublisher;
     }
 
     public void handle(JsonNode payload) throws IOException {
@@ -47,7 +55,23 @@ public class PullRequestEventService {
 
         log.info("Handling pull_request {} on {}/{}#{}", action, owner, repo, number);
         ContextBuildResult result = contextBuilder.build(installationId, owner, repo, number);
+        if (result instanceof ContextBuildResult.Ready ready) {
+            ReviewResult review = safeReview(ready.plan());
+            String body = commentRenderer.renderReview(ready.plan(), review);
+            findingPublisher.publish(installationId, owner, repo, number, ready.plan(), review, body);
+            return;
+        }
         gitHubAppClient.commentOnPullRequest(
                 installationId, owner, repo, number, commentRenderer.render(result));
+    }
+
+    private ReviewResult safeReview(com.evoreview.context.model.ReviewPlan plan) {
+        try {
+            return reviewEngine.review(plan);
+        } catch (RuntimeException e) {
+            log.warn("LLM review crashed for {}: {}; publishing context summary only",
+                    plan.contextId(), e.getMessage());
+            return ReviewResult.unavailable();
+        }
     }
 }

@@ -4,6 +4,8 @@ import com.evoreview.context.model.CapabilityReport;
 import com.evoreview.context.model.ContextBuildResult;
 import com.evoreview.context.model.ItemKind;
 import com.evoreview.context.model.ReviewPlan;
+import com.evoreview.review.ReviewResult;
+import com.evoreview.review.ReviewSeverity;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -21,8 +23,37 @@ public class ReviewPlanCommentRenderer {
         if (result instanceof ContextBuildResult.Skipped skipped) {
             return "## EvoReview\n\nContext build skipped: " + skipped.reason() + "\n";
         }
-        ReviewPlan plan = ((ContextBuildResult.Ready) result).plan();
+        return renderPlanBody(((ContextBuildResult.Ready) result).plan())
+                + "\n_Phase 2C context preview. No LLM review ran._\n";
+    }
 
+    public String renderReview(ReviewPlan plan, ReviewResult review) {
+        StringBuilder md = new StringBuilder(renderPlanBody(plan));
+        md.append("\n### LLM Review\n");
+        if (!review.llmAvailable()) {
+            md.append("LLM review unavailable (service down or not configured); context summary only.\n");
+            return md.toString();
+        }
+        md.append("Model `").append(review.model()).append("` · tokens: prompt=")
+                .append(review.promptTokens()).append(", completion=").append(review.completionTokens());
+        if (review.droppedFindings() > 0) {
+            md.append(" · dropped malformed findings: ").append(review.droppedFindings());
+        }
+        md.append('\n');
+        if (review.findings().isEmpty()) {
+            md.append("No issues found.\n");
+        } else {
+            long critical = countSeverity(review, ReviewSeverity.CRITICAL);
+            long warning = countSeverity(review, ReviewSeverity.WARNING);
+            long suggestion = countSeverity(review, ReviewSeverity.SUGGESTION);
+            md.append("**").append(review.findings().size()).append("** findings (critical=")
+                    .append(critical).append(", warning=").append(warning)
+                    .append(", suggestion=").append(suggestion).append(")\n");
+        }
+        return md.toString();
+    }
+
+    private String renderPlanBody(ReviewPlan plan) {
         StringBuilder md = new StringBuilder("## EvoReview\n\n");
         md.append("Context built for `").append(shortSha(plan.revision().headSha()))
                 .append("` · policy `").append(plan.policyVersion()).append("` · slices: **")
@@ -61,9 +92,11 @@ public class ReviewPlanCommentRenderer {
                 .append(", snapshot=").append(capabilities.headSnapshot())
                 .append(", mergeBase=").append(capabilities.mergeBaseFiles())
                 .append(", astCoverage=").append(Math.round(capabilities.astCoverage() * 100)).append("%\n");
-
-        md.append("\n_Phase 2C context preview. No LLM review ran._\n");
         return md.toString();
+    }
+
+    private static long countSeverity(ReviewResult review, ReviewSeverity severity) {
+        return review.findings().stream().filter(f -> f.severity() == severity).count();
     }
 
     private static long countByKind(ReviewPlan plan, ItemKind kind) {
