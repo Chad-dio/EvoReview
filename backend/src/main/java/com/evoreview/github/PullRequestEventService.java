@@ -1,5 +1,7 @@
 package com.evoreview.github;
 
+import com.evoreview.context.ContextBuilder;
+import com.evoreview.context.model.ContextBuildResult;
 import com.fasterxml.jackson.databind.JsonNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,9 +17,17 @@ public class PullRequestEventService {
     private static final Set<String> HANDLED_ACTIONS = Set.of("opened", "reopened", "synchronize");
 
     private final GitHubAppClient gitHubAppClient;
+    private final ContextBuilder contextBuilder;
+    private final ReviewPlanCommentRenderer commentRenderer;
 
-    public PullRequestEventService(GitHubAppClient gitHubAppClient) {
+    public PullRequestEventService(
+            GitHubAppClient gitHubAppClient,
+            ContextBuilder contextBuilder,
+            ReviewPlanCommentRenderer commentRenderer
+    ) {
         this.gitHubAppClient = gitHubAppClient;
+        this.contextBuilder = contextBuilder;
+        this.commentRenderer = commentRenderer;
     }
 
     public void handle(JsonNode payload) throws IOException {
@@ -36,6 +46,8 @@ public class PullRequestEventService {
         }
 
         log.info("Handling pull_request {} on {}/{}#{}", action, owner, repo, number);
-        gitHubAppClient.commentOnPullRequest(installationId, owner, repo, number, action);
+        ContextBuildResult result = contextBuilder.build(installationId, owner, repo, number);
+        gitHubAppClient.commentOnPullRequest(
+                installationId, owner, repo, number, commentRenderer.render(result));
     }
 }

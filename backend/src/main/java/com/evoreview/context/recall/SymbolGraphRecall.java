@@ -13,6 +13,8 @@ import com.evoreview.context.semantic.InvocationSite;
 import com.evoreview.context.semantic.MethodDecl;
 import com.evoreview.context.semantic.TypeDecl;
 
+import org.springframework.stereotype.Component;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -27,6 +29,7 @@ import java.util.Set;
  * rewritten) methods get a confidence floor — calling removed code is a
  * high-signal smell.
  */
+@Component
 public final class SymbolGraphRecall implements RecallChannel {
 
     private static final double RECEIVER_MATCH = 0.85;

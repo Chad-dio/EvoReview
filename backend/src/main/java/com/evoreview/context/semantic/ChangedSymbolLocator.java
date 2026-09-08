@@ -6,6 +6,7 @@ import com.evoreview.context.model.FileCategory;
 import com.evoreview.context.model.HunkLine;
 import com.evoreview.context.model.LineType;
 import com.evoreview.context.model.RevisionSide;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -18,6 +19,7 @@ import java.util.TreeSet;
  * ADDED/CONTEXT new-line numbers; merge-base side uses REMOVED old-line
  * numbers. A deleted file with no patch contributes all of its old methods.
  */
+@Component
 public final class ChangedSymbolLocator {
 
     public List<ChangedSymbol> locateHead(ChangedFile file, DeclarationIndex headIndex) {

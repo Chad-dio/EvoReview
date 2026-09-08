@@ -3,6 +3,7 @@ package com.evoreview.context.acquisition;
 import com.evoreview.context.ContextIds;
 import com.evoreview.context.model.ChangeType;
 import com.evoreview.context.model.RevisionSpec;
+import com.evoreview.github.GitHubAppClient;
 import org.kohsuke.github.GHPullRequest;
 import org.kohsuke.github.GHPullRequestFileDetail;
 import org.kohsuke.github.GHRepository;
@@ -21,11 +22,21 @@ import java.util.List;
 @Component
 public class GitHubPatchProvider implements PatchProvider {
 
+    private final GitHubAppClient gitHubAppClient;
+
+    public GitHubPatchProvider(GitHubAppClient gitHubAppClient) {
+        this.gitHubAppClient = gitHubAppClient;
+    }
+
     @Override
-    public PatchAcquisition fetch(GHPullRequest pullRequest) throws IOException {
+    public PatchAcquisition fetch(long installationId, String owner, String repo, int prNumber)
+            throws IOException {
+        GHRepository repository = gitHubAppClient.loginAsInstallation(installationId)
+                .getRepository(owner + "/" + repo);
+        GHPullRequest pullRequest = repository.getPullRequest(prNumber);
+
         String baseSha = pullRequest.getBase().getSha();
         String headSha = pullRequest.getHead().getSha();
-        GHRepository repository = pullRequest.getRepository();
         String mergeBaseSha = repository.getCompare(baseSha, headSha).getMergeBaseCommit().getSHA1();
 
         List<RawFilePatch> files = new ArrayList<>();
@@ -41,7 +52,6 @@ public class GitHubPatchProvider implements PatchProvider {
         }
 
         String repoId = repository.getFullName();
-        int prNumber = pullRequest.getNumber();
         RevisionSpec revision = new RevisionSpec(
                 repoId, prNumber, baseSha, mergeBaseSha, headSha, ContextIds.patchSha(files));
         return new PatchAcquisition(revision, new RawPatch(repoId, prNumber, files));

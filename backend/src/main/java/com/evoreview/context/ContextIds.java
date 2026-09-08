@@ -61,6 +61,23 @@ public final class ContextIds {
                 tokenEstimatorVersion));
     }
 
+    public static String configFingerprint(ContextProperties properties) {
+        return sha256Hex(String.join("\n",
+                "modelInputBudget=" + properties.getModelInputBudget(),
+                "promptOverhead=" + properties.getPromptOverhead(),
+                "safetyMargin=" + properties.getSafetyMargin(),
+                "maxRelatedFilesPerSlice=" + properties.getMaxRelatedFilesPerSlice(),
+                "maxFileKb=" + properties.getMaxFileKb(),
+                "maxSnapshotMb=" + properties.getMaxSnapshotMb(),
+                "policy=" + properties.getPolicy(),
+                "tokenEstimator=" + properties.getTokenEstimator(),
+                "symbolGraph=" + properties.getRecall().isSymbolGraph(),
+                "conventions=" + properties.getRecall().isConventions(),
+                "bm25=" + properties.getRecall().isBm25(),
+                "coChange=" + properties.getRecall().isCoChange(),
+                "sensitivePatterns=" + String.join(",", properties.getSensitivePatterns())));
+    }
+
     public static String sha256Hex(String input) {
         try {
             MessageDigest digest = MessageDigest.getInstance("SHA-256");

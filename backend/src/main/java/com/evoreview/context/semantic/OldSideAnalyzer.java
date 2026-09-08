@@ -2,6 +2,7 @@ package com.evoreview.context.semantic;
 
 import com.evoreview.context.model.ChangeType;
 import com.evoreview.context.model.ChangedFile;
+import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -14,6 +15,7 @@ import java.util.function.Function;
  * The content loader is the only I/O seam — backed by the contents API in
  * production, by an in-memory map in tests.
  */
+@Component
 public final class OldSideAnalyzer {
 
     private final AstProvider astProvider;

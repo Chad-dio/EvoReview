@@ -8,6 +8,8 @@ import com.evoreview.context.model.FileCategory;
 import com.evoreview.context.model.RecallSource;
 import com.evoreview.context.model.RevisionSide;
 
+import org.springframework.stereotype.Component;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashSet;
@@ -19,6 +21,7 @@ import java.util.Set;
  * high precision. Edges always point test → production so "from" is the
  * related context and "to" is the change.
  */
+@Component
 public final class ConventionRecall implements RecallChannel {
 
     private static final double CONFIDENCE = 0.95;

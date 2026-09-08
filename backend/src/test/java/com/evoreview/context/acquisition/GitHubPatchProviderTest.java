@@ -19,7 +19,9 @@ import static org.mockito.Mockito.when;
 
 class GitHubPatchProviderTest {
 
-    private final GitHubPatchProvider provider = new GitHubPatchProvider();
+    private final com.evoreview.github.GitHubAppClient appClient =
+            mock(com.evoreview.github.GitHubAppClient.class);
+    private final GitHubPatchProvider provider = new GitHubPatchProvider(appClient);
 
     @Test
     void freezesRevisionTripleAndMapsFiles() throws Exception {
@@ -49,7 +51,12 @@ class GitHubPatchProviderTest {
         when(pullRequest.getNumber()).thenReturn(42);
         when(pullRequest.listFiles()).thenReturn(paged);
 
-        PatchAcquisition acquisition = provider.fetch(pullRequest);
+        org.kohsuke.github.GitHub gitHub = mock(org.kohsuke.github.GitHub.class);
+        when(appClient.loginAsInstallation(7L)).thenReturn(gitHub);
+        when(gitHub.getRepository("octo/repo")).thenReturn(repository);
+        when(repository.getPullRequest(42)).thenReturn(pullRequest);
+
+        PatchAcquisition acquisition = provider.fetch(7L, "octo", "repo", 42);
 
         assertThat(acquisition.revision().repoId()).isEqualTo("octo/repo");
         assertThat(acquisition.revision().prNumber()).isEqualTo(42);
